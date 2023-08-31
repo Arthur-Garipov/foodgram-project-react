@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from reportlab.pdfbase import pdfmetrics, ttfonts
 from reportlab.pdfgen import canvas
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientFilter
 from .serializers import (
     IngredientSerializer,
     RecipeSerializer,
@@ -21,7 +21,7 @@ from .serializers import (
     FollowSerializer,
     TagSerializer,
 )
-from .permissions import IsAuthorOrReadOnly
+from .permissions import IsAuthorOrReadOnly, CustomUserPermissions
 from rest_framework import viewsets, status, filters, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -45,12 +45,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(
         methods=(
-            "get",
-            "patch",
+            "GET",
+            "PATCH",
+            "POST"
         ),
         detail=False,
         url_path="me",
-        permission_classes=(permissions.IsAuthenticated,),
+        permission_classes=(IsAuthenticated, CustomUserPermissions,),
     )
     def user_own_account(self, request):
         user = request.user
@@ -137,6 +138,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
     permission_classes = (AllowAny,)
     pagination_class = None
 

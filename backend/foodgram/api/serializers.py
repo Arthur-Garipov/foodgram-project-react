@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
-from rest_framework.validators import UniqueValidator
+from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 from recipe.models import (
     IngredientInRecipe,
     Ingredient,
@@ -29,7 +29,7 @@ class ImageFieldSerializer(serializers.ImageField):
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = "__all__"
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -124,8 +124,8 @@ class FollowSerializer(UserSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source="ingredient.name", read_only=True)
-    id = serializers.PrimaryKeyRelatedField(source="ingredient.id", read_only=True)
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    id = serializers.ReadOnlyField(source='ingredient.id')
     measurement_unit = serializers.CharField(
         source="ingredient.measurement_unit", read_only=True
     )
@@ -133,6 +133,12 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = IngredientInRecipe
         fields = ("id", "name", "measurement_unit", "amount")
+        validators = [
+            UniqueTogetherValidator(
+                queryset=IngredientInRecipe.objects.all(),
+                fields=['ingredient', 'recipe'],
+            )
+        ]
 
 
 class AddIngredientSerializer(serializers.ModelSerializer):
@@ -154,7 +160,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = (
             "id",
-            "tags",
             "author",
             "ingredients",
             "name",
@@ -162,33 +167,42 @@ class RecipeSerializer(serializers.ModelSerializer):
             "description",
             "cooking_time",
         )
+        read_only_fields = ("tags",)
 
-    def validate_ingredients(self, value):
-        ingredients = value
-        ingredients_list = []
-        for item in ingredients:
-            ingredient = get_object_or_404(Ingredient, id=item["id"])
-            if ingredient in ingredients_list:
-                raise ValidationError(
-                    {"ingredients": "Ингридиенты не могут повторяться!"}
-                )
-            if int(item["amount"]) <= 0:
-                raise ValidationError(
-                    {"amount": "Количество ингредиента должно быть больше 0!"}
-                )
-            ingredients_list.append(ingredient)
-        return value
-
-    def validate_tags(self, value):
-        tags = value
+    def validate(self, data):
+        tags = self.initial_data.get('tags')
         if not tags:
-            raise ValidationError({"tags": "Нужно выбрать хотя бы один тег!"})
-        tags_list = []
+            raise ValidationError('Укажите хотя бы один тег.')
+        if len(tags) != len(set(tags)):
+            raise ValidationError('Теги не должны повторяться.')
         for tag in tags:
-            if tag in tags_list:
-                raise ValidationError({"tags": "Теги должны быть уникальными!"})
-            tags_list.append(tag)
-        return value
+            get_object_or_404(Tag, pk=tag)
+        data['tags'] = tags
+
+        ingredients_list = []
+        ingredients = self.initial_data.get('ingredients')
+        if not ingredients:
+            raise ValidationError('Укажите хотя бы один ингредиент.')
+        for ingredient in ingredients:
+            get_object_or_404(Ingredient, pk=ingredient['id'])
+            try:
+                int(ingredient['amount'])
+            except ValueError:
+                raise ValidationError(
+                    'Количество ингредиента должно быть записано только в '
+                    'виде числа.'
+                )
+            if int(ingredient['amount']) < 0:
+                raise ValidationError('Минимальное количество игредиента - 0.')
+            if ingredient in ingredients_list:
+                raise ValidationError('Ингредиенты не должны повторяться.')
+            ingredients_list.append(ingredient)
+        data['ingredients'] = ingredients_list
+
+        cooking_time = self.initial_data.get('cooking_time')
+        if int(cooking_time) < 1:
+            raise ValidationError('Минимальное время приготовления - 1 мин.')
+        return data
 
     @transaction.atomic
     def get_ingredients(self, recipe, ingredients):
