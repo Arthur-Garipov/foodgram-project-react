@@ -39,22 +39,22 @@ class FollowAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ("name", "author", "pub_date", "display_tag", "favorite")
-    list_filter = ("name", "author", "tag")
+    list_display = ("name", "author", "pub_date", "display_tags", "favorite")
+    list_filter = ("name", "author", "tags")
     search_fields = ("name",)
     readonly_fields = ("favorite",)
     fields = (
         "image",
         ("name", "author"),
         "description",
-        ("tag", "cooking_time"),
+        ("tags", "cooking_time"),
         "favorite",
     )
 
-    def display_tag(self, obj):
-        return ", ".join([tag.name for tag in obj.tag.all()])
+    def display_tags(self, obj):
+        return ", ".join([tag.name for tag in obj.tags.all()])
 
-    display_tag.short_description = "Теги"
+    display_tags.short_description = "Теги"
 
     def favorite(self, obj):
         return obj.favorite.count()

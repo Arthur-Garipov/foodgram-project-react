@@ -52,16 +52,16 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
-    name = models.CharField(max_length=100, help_text="Введите название блюда")
+    name = models.CharField(max_length=100, verbose_name="Название", help_text="Введите название блюда")
     author = models.ForeignKey(User, related_name="recipe", on_delete=models.CASCADE)
     image = models.ImageField(
         upload_to="recipe/images/",
         help_text="Выберите фотографию готового блюда",
     )
-    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
+    pub_date = models.DateTimeField(verbose_name="Дата публикации", auto_now_add=True)
     description = models.TextField(verbose_name="Описание рецепта")
-    ingredients = models.ManyToManyField(Ingredient)
-    tag = models.ManyToManyField(Tag, related_name="recipe")
+    ingredients = models.ManyToManyField(Ingredient, verbose_name='Ингредиенты', through='IngredientInRecipe',)
+    tags = models.ManyToManyField(Tag, related_name="recipe")
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name="Время приготовления",
         validators=[
@@ -97,7 +97,7 @@ class IngredientInRecipe(models.Model):
         verbose_name='Количество',
         validators=(MinValueValidator(
             limit_value=1,
-            message='Количество должно быть больше нуля'),
+            message='Количество должно быть меньше нуля'),
         )
     )
 
