@@ -46,7 +46,7 @@ class RecipeAdmin(admin.ModelAdmin):
     fields = (
         "image",
         ("name", "author"),
-        "description",
+        "text",
         ("tags", "cooking_time"),
         "favorite",
     )

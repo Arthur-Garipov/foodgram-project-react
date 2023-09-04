@@ -172,7 +172,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             "ingredients",
             "name",
             "image",
-            "description",
+            "text",
             "cooking_time",
         )
         read_only_fields = ("tags",)
@@ -217,7 +217,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         IngredientInRecipe.objects.bulk_create(
             [
                 IngredientInRecipe(
-                    ingredient=ingredient.get("ingredient"),
+                    ingredient=Ingredient.objects.get(id=ingredient['id']),
                     recipe=recipe,
                     amount=ingredient["amount"],
                 )
@@ -274,7 +274,7 @@ class GetRecipeSerializer(serializers.ModelSerializer):
             "is_in_shopping_cart",
             "name",
             "image",
-            "description",
+            "text",
             "cooking_time",
         )
 
@@ -282,13 +282,13 @@ class GetRecipeSerializer(serializers.ModelSerializer):
         user = self.context.get("request").user
         if user.is_anonymous:
             return False
-        return object.favorite.filter(user=user).exists()
+        return user.favorite.filter(recipe=object).exists()
 
     def get_is_in_shopping_cart(self, object):
         user = self.context.get("request").user
         if user.is_anonymous:
             return False
-        return object.is_in_shopping_cart.filter(user=user).exists()
+        return user.shopping_cart.filter(recipe=object).exists()
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

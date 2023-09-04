@@ -59,7 +59,7 @@ class Recipe(models.Model):
         help_text="Выберите фотографию готового блюда",
     )
     pub_date = models.DateTimeField(verbose_name="Дата публикации", auto_now_add=True)
-    description = models.TextField(verbose_name="Описание рецепта")
+    text = models.TextField(verbose_name="Описание рецепта")
     ingredients = models.ManyToManyField(Ingredient, verbose_name='Ингредиенты', through='IngredientInRecipe',)
     tags = models.ManyToManyField(Tag, related_name="recipe")
     cooking_time = models.PositiveSmallIntegerField(
@@ -105,7 +105,7 @@ class IngredientInRecipe(models.Model):
         verbose_name = "Ингредиент в рецепте"
         constraints = [
             UniqueConstraint(
-                fields=('recipe', 'ingredient'),
+                fields=['recipe', 'ingredient'],
                 name='unique ingredient for recipe'
             )
         ]
@@ -132,12 +132,12 @@ class Favorite(models.Model):
     class Meta:
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
-        constraints = (
+        constraints = [
             UniqueConstraint(
-                fields=('user', 'recipe'),
+                fields=['user', 'recipe'],
                 name='unique favorite'
             ),
-        )
+        ]
 
     def __str__(self):
         return f'{self.recipe} в избранном у {self.user}'
@@ -159,12 +159,12 @@ class ShoppingCart(models.Model):
 
     class Meta:
         verbose_name = 'Рецепт в корзине'
-        constraints = (
+        constraints = [
             UniqueConstraint(
-                fields=('user', 'recipe'),
+                fields=['user', 'recipe'],
                 name='unique recipe in shopping cart'
             ),
-        )
+        ]
 
     def __str__(self):
         return f'{self.recipe} в корзине у {self.user}'
@@ -184,5 +184,5 @@ class Follow(models.Model):
     class Meta:
         verbose_name = "Подписка"
         constraints = [
-            models.UniqueConstraint(fields=["author", "user"], name="unique_follower")
+            UniqueConstraint(fields=["author", "user"], name="unique_follower")
         ]
