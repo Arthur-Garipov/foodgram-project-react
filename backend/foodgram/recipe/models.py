@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import UniqueConstraint
-from rest_framework.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -43,12 +42,15 @@ class Tag(models.Model):
 
 class Recipe(models.Model):
     name = models.CharField(
-        max_length=100, verbose_name="Название", help_text="Введите название блюда"
+        max_length=100,
+        verbose_name="Название",
+        help_text="Введите название блюда",
     )
     author = models.ForeignKey(User, related_name="recipe", on_delete=models.CASCADE)
     image = models.ImageField(
-        upload_to="recipe/images/",
+        upload_to="recipe/",
         help_text="Выберите фотографию готового блюда",
+        blank=True,
     )
     pub_date = models.DateTimeField(verbose_name="Дата публикации", auto_now_add=True)
     text = models.TextField(verbose_name="Описание рецепта")
@@ -102,7 +104,8 @@ class IngredientInRecipe(models.Model):
         verbose_name = "Ингредиент в рецепте"
         constraints = [
             UniqueConstraint(
-                fields=["recipe", "ingredient"], name="unique ingredient for recipe"
+                fields=["recipe", "ingredient"],
+                name="unique ingredient for recipe",
             )
         ]
 
@@ -156,7 +159,8 @@ class ShoppingCart(models.Model):
         verbose_name = "Рецепт в корзине"
         constraints = [
             UniqueConstraint(
-                fields=["user", "recipe"], name="unique recipe in shopping cart"
+                fields=["user", "recipe"],
+                name="unique recipe in shopping cart",
             ),
         ]
 
@@ -168,16 +172,11 @@ class Follow(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower")
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
 
-    def __str__(self):
-        return f"Автор: {self.author}, подписчик: {self.user}"
-
-    def save(self, *args, **kwargs):
-        if self.user == self.author:
-            raise ValidationError("Невозможно подписаться на себя")
-        super().save(*args, **kwargs)
-
     class Meta:
         verbose_name = "Подписка"
         constraints = [
             UniqueConstraint(fields=["author", "user"], name="unique_follower")
         ]
+
+    def __str__(self):
+        return f"Автор: {self.author}, подписчик: {self.user}"

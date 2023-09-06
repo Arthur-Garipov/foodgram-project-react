@@ -56,11 +56,11 @@ class UserSerializer(serializers.ModelSerializer):
             "is_subscribed",
         )
 
-    def get_is_subscribed(self, obj):
+    def get_is_subscribed(self, object):
         user = self.context.get("request").user
         if user.is_anonymous:
             return False
-        return Follow.objects.filter(user=user, author=obj).exists()
+        return Follow.objects.filter(user=user, author=object.id).exists()
 
 
 class UsersCreateSerializer(serializers.ModelSerializer):
@@ -78,7 +78,14 @@ class UsersCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("email", "id", "username", "first_name", "last_name", "password")
+        fields = (
+            "email",
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "password",
+        )
         extra_kwargs = {"password": {"write_only": True}}
 
     def validate_username(self, value):
@@ -93,12 +100,28 @@ class UsersCreateSerializer(serializers.ModelSerializer):
         return user
 
 
-class FollowSerializer(UserSerializer):
+class FollowSerializer(ModelSerializer):
+    email = serializers.ReadOnlyField(source="user.email")
+    id = serializers.ReadOnlyField(source="user.id")
+    username = serializers.ReadOnlyField(source="user.username")
+    first_name = serializers.ReadOnlyField(source="user.first_name")
+    last_name = serializers.ReadOnlyField(source="user.last_name")
+    is_subscribed = serializers.SerializerMethodField()
     recipes_count = SerializerMethodField()
     recipes = SerializerMethodField()
 
-    class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields + ("recipes_count", "recipes")
+    class Meta:
+        model = Follow
+        fields = (
+            "email",
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+            "recipes_count",
+            "recipes",
+        )
         read_only_fields = ("email", "username")
 
     def validate(self, data):
@@ -116,16 +139,17 @@ class FollowSerializer(UserSerializer):
             )
         return data
 
-    def get_recipes_count(self, obj):
-        return obj.recipes.count()
+    def get_is_subscribed(self, object):
+        user = object.user
+        author = self.context.get("request").user
+        return Follow.objects.filter(user=user, author=author).exists()
+
+    def get_recipes_count(self, object):
+        return Recipe.objects.filter(author=object.user).count()
 
     def get_recipes(self, obj):
-        request = self.context.get("request")
-        limit = request.GET.get("recipes_limit")
-        recipes = obj.recipes.all()
-        if limit:
-            recipes = recipes[: int(limit)]
-        serializer = RecipeShortSerializer(recipes, many=True, read_only=True)
+        recipes = Recipe.objects.filter(author=obj.user)
+        serializer = RecipeShortSerializer(recipes, many=True)
         return serializer.data
 
 
