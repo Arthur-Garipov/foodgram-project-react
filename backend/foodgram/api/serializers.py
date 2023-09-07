@@ -1,4 +1,5 @@
 import base64
+
 from django.core.files.base import ContentFile
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -90,7 +91,9 @@ class UsersCreateSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         if value == "me":
-            raise ValidationError("Невозможно создать пользователя с таким именем!")
+            raise ValidationError(
+                "Невозможно создать пользователя с таким именем!"
+            )
         if User.objects.filter(username=value).exists():
             raise ValidationError("Пользователь с таким именем уже существует")
         return value
@@ -155,7 +158,9 @@ class FollowSerializer(ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="ingredient.name")
-    id = serializers.PrimaryKeyRelatedField(source="ingredient.id", read_only=True)
+    id = serializers.PrimaryKeyRelatedField(
+        source="ingredient.id", read_only=True
+    )
     measurement_unit = serializers.CharField(
         source="ingredient.measurement_unit", read_only=True
     )

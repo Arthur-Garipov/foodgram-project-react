@@ -1,6 +1,5 @@
 from django.db.models import BooleanField, ExpressionWrapper, Q
 from django_filters import FilterSet, filters
-
 from recipe.models import Ingredient, Recipe
 
 
@@ -13,7 +12,9 @@ class IngredientFilter(FilterSet):
 
     def filter_name(self, queryset, name, value):
         return (
-            queryset.filter(Q(name__istartswith=value) | Q(name__icontains=value))
+            queryset.filter(
+                Q(name__istartswith=value) | Q(name__icontains=value)
+            )
             .annotate(
                 startswith=ExpressionWrapper(
                     Q(name__istartswith=value), output_field=BooleanField()
@@ -27,7 +28,9 @@ class RecipeFilter(FilterSet):
     author = filters.CharFilter(field_name="author__id")
     tags = filters.AllValuesMultipleFilter(field_name="tags__slug")
     is_favorited = filters.NumberFilter(method="filter_is_favorited")
-    is_in_shopping_cart = filters.NumberFilter(method="filter_is_in_shopping_cart")
+    is_in_shopping_cart = filters.NumberFilter(
+        method="filter_is_in_shopping_cart"
+    )
 
     class Meta:
         model = Recipe
