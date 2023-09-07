@@ -1,0 +1,5 @@
+e-mail: fima3655@gmail.com
+password: fhneh12ktn
+username: Admin
+
+url: https://product.ddns.net/
