@@ -21,7 +21,9 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "Пользователь"
         constraints = [
-            models.UniqueConstraint(fields=("username", "email"), name="unique_user")
+            models.UniqueConstraint(
+                fields=("username", "email"), name="unique_user"
+            )
         ]
 
     def __str__(self):
