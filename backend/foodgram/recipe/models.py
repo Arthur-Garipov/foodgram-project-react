@@ -7,8 +7,12 @@ User = get_user_model()
 
 
 class Ingredient(models.Model):
-    name = models.CharField(verbose_name="Название ингредиента", max_length=100)
-    measurement_unit = models.CharField(verbose_name="Единица измерения", max_length=15)
+    name = models.CharField(
+        verbose_name="Название ингредиента", max_length=100
+    )
+    measurement_unit = models.CharField(
+        verbose_name="Единица измерения", max_length=15
+    )
 
     class Meta:
         verbose_name = "Ингредиент"
@@ -19,7 +23,9 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField(verbose_name="Название", max_length=16, unique=True)
+    name = models.CharField(
+        verbose_name="Название", max_length=16, unique=True
+    )
     color = models.CharField(
         "Цветовой HEX-код",
         unique=True,
@@ -46,13 +52,17 @@ class Recipe(models.Model):
         verbose_name="Название",
         help_text="Введите название блюда",
     )
-    author = models.ForeignKey(User, related_name="recipe", on_delete=models.CASCADE)
+    author = models.ForeignKey(
+        User, related_name="recipe", on_delete=models.CASCADE
+    )
     image = models.ImageField(
         upload_to="recipe/",
         help_text="Выберите фотографию готового блюда",
         blank=True,
     )
-    pub_date = models.DateTimeField(verbose_name="Дата публикации", auto_now_add=True)
+    pub_date = models.DateTimeField(
+        verbose_name="Дата публикации", auto_now_add=True
+    )
     text = models.TextField(verbose_name="Описание рецепта")
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -134,7 +144,9 @@ class Favorite(models.Model):
         verbose_name = "Избранный рецепт"
         verbose_name_plural = "Избранные рецепты"
         constraints = [
-            UniqueConstraint(fields=["user", "recipe"], name="unique favorite"),
+            UniqueConstraint(
+                fields=["user", "recipe"], name="unique favorite"
+            ),
         ]
 
     def __str__(self):
@@ -169,8 +181,12 @@ class ShoppingCart(models.Model):
 
 
 class Follow(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="follower"
+    )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="following"
+    )
 
     class Meta:
         verbose_name = "Подписка"

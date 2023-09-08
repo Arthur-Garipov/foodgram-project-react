@@ -50,7 +50,9 @@ class UserViewSet(UserViewSet):
     def subscriptions(self, request):
         queryset = Follow.objects.filter(author=request.user)
         page = self.paginate_queryset(queryset)
-        serializer = FollowSerializer(page, many=True, context={"request": request})
+        serializer = FollowSerializer(
+            page, many=True, context={"request": request}
+        )
         return self.get_paginated_response(serializer.data)
 
     @action(
@@ -74,7 +76,9 @@ class UserViewSet(UserViewSet):
                 {"errors": "Вы не можете подписаться на самого себя."}
             )
         elif model.objects.filter(user=user, author=author).exists():
-            raise ValidationError({"errors": "Вы уже подписаны на этого пользователя."})
+            raise ValidationError(
+                {"errors": "Вы уже подписаны на этого пользователя."}
+            )
         follow = model.objects.create(user=user, author=author)
         serializer = FollowSerializer(follow, context={"request": request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -83,11 +87,15 @@ class UserViewSet(UserViewSet):
         author = request.user
         user = get_object_or_404(User, id=id)
         if user == author:
-            raise ValidationError({"errors": "Вы не можете отписаться от самого себя."})
+            raise ValidationError(
+                {"errors": "Вы не можете отписаться от самого себя."}
+            )
         elif model.objects.filter(user=user, author=author).exists():
             model.objects.filter(user=user, author=author).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        raise ValidationError({"errors": "Вы не подписаны на этого пользователя."})
+        raise ValidationError(
+            {"errors": "Вы не подписаны на этого пользователя."}
+        )
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -168,7 +176,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(status=HTTP_400_BAD_REQUEST)
 
         ingredients = (
-            IngredientInRecipe.objects.filter(recipe__shopping_cart__user=request.user)
+            IngredientInRecipe.objects.filter(
+                recipe__shopping_cart__user=request.user
+            )
             .values("ingredient__name", "ingredient__measurement_unit")
             .annotate(amount=Sum("amount"))
         )
