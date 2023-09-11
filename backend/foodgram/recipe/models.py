@@ -19,6 +19,7 @@ class Ingredient(models.Model):
     )
 
     class Meta:
+        ordering = ['name']
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
         unique_together = ('name', 'measurement_unit')
@@ -45,6 +46,7 @@ class Tag(models.Model):
     slug = models.SlugField("Уникальный слаг", unique=True, max_length=200)
 
     class Meta:
+        ordering = ['name']
         verbose_name = "Тег"
 
     def __str__(self):
@@ -105,7 +107,7 @@ class IngredientInRecipe(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         verbose_name="Рецепт",
-        related_name="recipe_ingredient",
+        related_name="ingredients",
     )
     ingredient = models.ForeignKey(
         Ingredient,
