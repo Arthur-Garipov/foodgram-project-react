@@ -12,11 +12,10 @@ from recipe.models import (
     Ingredient,
     Recipe,
     Tag,
-    Follow,
     Favorite,
     ShoppingCart,
 )
-from users.models import User
+from users.models import User, Follow
 from rest_framework.serializers import ModelSerializer
 
 

@@ -2,7 +2,6 @@ from django.contrib import admin
 from .models import (
     Ingredient,
     Recipe,
-    Follow,
     Tag,
     IngredientInRecipe,
     Favorite,
@@ -24,17 +23,6 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ("name", "color", "slug")
-
-
-@admin.register(Follow)
-class FollowAdmin(admin.ModelAdmin):
-    list_display = (
-        "user",
-        "author",
-    )
-    search_fields = ("user__username", "author__username")
-    list_filter = ("user", "author")
-    empty_value_display = "-пусто-"
 
 
 @admin.register(Recipe)

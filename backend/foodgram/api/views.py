@@ -9,12 +9,11 @@ from recipe.models import (
     Ingredient,
     Recipe,
     Tag,
-    Follow,
     IngredientInRecipe,
     Favorite,
     ShoppingCart,
 )
-from users.models import User
+from users.models import User, Follow
 from .paginate import CustomPagination
 from django.http import HttpResponse
 from rest_framework.status import HTTP_400_BAD_REQUEST
@@ -38,7 +37,6 @@ from rest_framework.permissions import AllowAny, SAFE_METHODS
 class UserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # pagination_class = CustomPagination
 
     @action(detail=False, permission_classes=[IsAuthenticated])
     def me(self, request):
@@ -180,7 +178,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 recipe__shopping_cart__user=request.user
             )
             .values("ingredient__name", "ingredient__measurement_unit")
-            .annotate(amount=Sum("amount"))
+            .annotate(full_amount=Sum("amount"))
         )
 
         today = datetime.today()
