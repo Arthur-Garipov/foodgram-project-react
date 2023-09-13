@@ -204,40 +204,55 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("tags",)
 
-    def validate(self, data):
-        tags = self.initial_data.get("tags")
-        if not tags:
-            raise ValidationError("Укажите хотя бы один тег.")
-        if len(tags) != len(set(tags)):
-            raise ValidationError("Теги не должны повторяться.")
-        for tag in tags:
-            get_object_or_404(Tag, pk=tag)
-        data["tags"] = tags
 
-        ingredients_list = []
-        ingredients = self.initial_data.get("ingredients")
-        if not ingredients:
-            raise ValidationError("Укажите хотя бы один ингредиент.")
-        for ingredient in ingredients:
-            get_object_or_404(Ingredient, pk=ingredient["id"])
-            try:
-                int(ingredient["amount"])
-            except ValueError:
-                raise ValidationError(
-                    "Количество ингредиента должно быть записано только в "
-                    "виде числа."
-                )
-            if int(ingredient["amount"]) < 0:
-                raise ValidationError("Минимальное количество игредиента - 0.")
-            if ingredient in ingredients_list:
-                raise ValidationError("Ингредиенты не должны повторяться.")
-            ingredients_list.append(ingredient)
-        data["ingredients"] = ingredients_list
+def validate_tags(self, tags):
+    if not tags:
+        raise ValidationError("Укажите хотя бы один тег.")
+    if len(tags) != len(set(tags)):
+        raise ValidationError("Теги не должны повторяться.")
+    for tag in tags:
+        get_object_or_404(Tag, pk=tag)
 
-        cooking_time = self.initial_data.get("cooking_time")
-        if int(cooking_time) < 1:
-            raise ValidationError("Минимальное время приготовления - 1 мин.")
-        return data
+
+def validate_ingredients(self, ingredients):
+    ingredients_list = []
+    if not ingredients:
+        raise ValidationError("Укажите хотя бы один ингредиент.")
+    for ingredient in ingredients:
+        get_object_or_404(Ingredient, pk=ingredient["id"])
+        try:
+            int(ingredient["amount"])
+        except ValueError:
+            raise ValidationError(
+                "Количество ингредиента должно быть записано только в "
+                "виде числа."
+            )
+        if int(ingredient["amount"]) < 0:
+            raise ValidationError("Минимальное количество игредиента - 0.")
+        if ingredient in ingredients_list:
+            raise ValidationError("Ингредиенты не должны повторяться.")
+        ingredients_list.append(ingredient)
+    return ingredients_list
+
+
+def validate_cooking_time(self, cooking_time):
+    if int(cooking_time) < 1:
+        raise ValidationError("Минимальное время приготовления - 1 мин.")
+
+
+def validate(self, data):
+    tags = self.initial_data.get("tags")
+    self.validate_tags(tags)
+    data["tags"] = tags
+
+    ingredients = self.initial_data.get("ingredients")
+    ingredients_list = self.validate_ingredients(ingredients)
+    data["ingredients"] = ingredients_list
+
+    cooking_time = self.initial_data.get("cooking_time")
+    self.validate_cooking_time(cooking_time)
+
+    return data
 
     @transaction.atomic
     def get_ingredients(self, recipe, ingredients):
