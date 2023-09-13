@@ -204,7 +204,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("tags",)
 
-    def tag_validate(self, data):
+    def validate(self, data):
         tags = self.initial_data.get("tags")
         if not tags:
             raise ValidationError("Укажите хотя бы один тег.")
@@ -212,10 +212,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             raise ValidationError("Теги не должны повторяться.")
         for tag in tags:
             get_object_or_404(Tag, pk=tag)
-        data[tags] = tags
-        return data[tags]
+        data["tags"] = tags
 
-    def ingrtedient_list_validate(self, data):
         ingredients_list = []
         ingredients = self.initial_data.get("ingredients")
         if not ingredients:
@@ -235,7 +233,6 @@ class RecipeSerializer(serializers.ModelSerializer):
                 raise ValidationError("Ингредиенты не должны повторяться.")
             ingredients_list.append(ingredient)
         data["ingredients"] = ingredients_list
-        return data["ingredients"]
 
         cooking_time = self.initial_data.get("cooking_time")
         if int(cooking_time) < 1:
@@ -311,15 +308,16 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, object):
         user = self.context.get("request").user
-        if user.is_anonymous:
-            return False
-        return user.favorite.filter(recipe=object).exists()
+        return (
+            not user.is_anonymous
+            and user.favorite.filter(recipe=object).exists()
+        )
 
     def get_is_in_shopping_cart(self, object):
         user = self.context.get("request").user
         return (
             not user.is_anonymous
-            and user.shopping_cart.filter(recipe=object).exists()
+            and user.shoppingcart.filter(recipe=object).exists()
         )
 
 

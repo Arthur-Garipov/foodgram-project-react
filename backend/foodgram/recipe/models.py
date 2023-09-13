@@ -92,18 +92,6 @@ class Recipe(models.Model):
             ),
         ],
     )
-    favorited_by = models.ManyToManyField(
-        User,
-        through='Favorite',
-        related_name='favorite_recipes',
-        blank=True,
-    )
-    added_to_cart_by = models.ManyToManyField(
-        User,
-        through='ShoppingCart',
-        related_name='cart_recipes',
-        blank=True,
-    )
 
     class Meta:
         ordering = ["-pub_date"]
@@ -156,11 +144,13 @@ class BaseFavShopModel(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name="Пользователь",
+        related_name="%(class)s",
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         verbose_name="Рецепты",
+        related_name="%(class)s",
     )
 
     class Meta:
