@@ -288,7 +288,7 @@ class GetRecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     author = UserSerializer(read_only=True)
     ingredients = RecipeIngredientSerializer(
-        read_only=True, many=True, source="recipe_ingredient"
+        read_only=True, many=True, source="ingredient_in"
     )
     image = ImageFieldSerializer()
     is_favorited = SerializerMethodField(read_only=True)
