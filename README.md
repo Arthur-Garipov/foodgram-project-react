@@ -50,16 +50,8 @@
 Выполните миграции: `docker-compose exec backend python manage.py migrate`.
 
 Для заполнения базы ингредиентами (не обязательно) выполните команды:
-```
-docker-compose exec backend python manage.py shell
 
-# выполнить в открывшемся терминале:
->>> from django.contrib.contenttypes.models import ContentType
->>> ContentType.objects.all().delete()
->>> quit()
-
-docker-compose exec backend python manage.py load_data
-```
+`docker-compose exec backend python manage.py load_data`
 
 Создайте суперпользователя:
 

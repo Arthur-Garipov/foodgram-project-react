@@ -1,8 +1,11 @@
 import csv
 
 from django.core.management.base import BaseCommand
-
+from django.contrib.contenttypes.models import ContentType
 from recipe.models import Ingredient
+
+
+ContentType.objects.all().delete()
 
 
 class Command(BaseCommand):
