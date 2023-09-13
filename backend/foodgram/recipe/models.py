@@ -92,6 +92,18 @@ class Recipe(models.Model):
             ),
         ],
     )
+    favorited_by = models.ManyToManyField(
+        User,
+        through='Favorite',
+        related_name='favorite_recipes',
+        blank=True,
+    )
+    added_to_cart_by = models.ManyToManyField(
+        User,
+        through='ShoppingCart',
+        related_name='cart_recipes',
+        blank=True,
+    )
 
     class Meta:
         ordering = ["-pub_date"]
