@@ -204,18 +204,16 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("tags",)
 
-    def validate(self, data):
-        tags = self.initial_data.get("tags")
+    def validate_tags(self, tags):
         if not tags:
             raise ValidationError("Укажите хотя бы один тег.")
         if len(tags) != len(set(tags)):
             raise ValidationError("Теги не должны повторяться.")
         for tag in tags:
             get_object_or_404(Tag, pk=tag)
-        data["tags"] = tags
 
+    def validate_ingredients(self, ingredients):
         ingredients_list = []
-        ingredients = self.initial_data.get("ingredients")
         if not ingredients:
             raise ValidationError("Укажите хотя бы один ингредиент.")
         for ingredient in ingredients:
@@ -232,11 +230,24 @@ class RecipeSerializer(serializers.ModelSerializer):
             if ingredient in ingredients_list:
                 raise ValidationError("Ингредиенты не должны повторяться.")
             ingredients_list.append(ingredient)
+        return ingredients_list
+
+    def validate_cooking_time(self, cooking_time):
+        if int(cooking_time) < 1:
+            raise ValidationError("Минимальное время приготовления - 1 мин.")
+
+    def validate(self, data):
+        tags = self.initial_data.get("tags")
+        self.validate_tags(tags)
+        data["tags"] = tags
+
+        ingredients = self.initial_data.get("ingredients")
+        ingredients_list = self.validate_ingredients(ingredients)
         data["ingredients"] = ingredients_list
 
         cooking_time = self.initial_data.get("cooking_time")
-        if int(cooking_time) < 1:
-            raise ValidationError("Минимальное время приготовления - 1 мин.")
+        self.validate_cooking_time(cooking_time)
+
         return data
 
     @transaction.atomic
